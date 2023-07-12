@@ -102,7 +102,27 @@ public class MyController extends HttpServlet {
 			
 		} else if (path.equals("/getBoard.do")) {
 			System.out.println("request getBoard.do");
+			// request.getParameter로 받으면 String
+			String seq = request.getParameter("seq");
+			// 1. DTO 에 seq 주입
+			// String to Integer
+			BoardDTO dto = new BoardDTO();
+			dto.setSeq(Integer.parseInt(seq));
 			
+			// 2. DAO 객체에 getBoard(dto) 호출
+			BoardDAO dao = new BoardDAO();
+			dto = dao.getBoard(dto);
+			
+			System.out.println(dto);
+			
+			// 3. session에 값 저장 후 view 페이지로 전달.
+			// session 변수 선언
+			HttpSession session = request.getSession();
+			session.setAttribute("getBoard", dto);
+			// session 에 DB에서 select한 dto를 저장 후 redirect.			
+			response.sendRedirect("getBoard.jsp");
+			
+
 		} else if (path.equals("/getBoardList.do")) {
 			System.out.println("request getBoardList.do");
 			
@@ -120,11 +140,31 @@ public class MyController extends HttpServlet {
 			HttpSession session = request.getSession();
 			
 			// 세션에 boardList 추가.
-			session.setAttribute("boardList", boardList);
+			session.setAttribute("boardList", boardList); // ( 변수를 담을 이름 선언 , 담을 값 )
 			// 클라이언트 뷰 페이지 이동.
 			response.sendRedirect("getBoardList.jsp");
 			
-		}else if (path.equals("/insertUsers.do")) {
+		} else if (path.equals("/updateBoard.do")) {
+			System.out.println("request updateBoard.do");
+			String title = request.getParameter("title");
+			String content = request.getParameter("content");
+			String seq = request.getParameter("seq");
+			
+			System.out.println("seq로 받는 값 : " + seq);
+			
+			BoardDTO dto = new BoardDTO();
+			dto.setTitle(title);
+			dto.setContent(content);
+			dto.setSeq(Integer.parseInt(seq));			
+			
+			BoardDAO dao = new BoardDAO();
+			dao.updateBoard(dto);
+			
+			response.sendRedirect("getBoardList.do");
+			
+			
+			
+		} else if (path.equals("/insertUsers.do")) {
 			//Users 테이블에 값 insert.
 			System.out.println("request insertUsers.do");
 			String id = request.getParameter("id");
@@ -140,7 +180,8 @@ public class MyController extends HttpServlet {
 			dao.insertUsers(dto);
 			
 			response.sendRedirect("getUsersList.do");
-		}else if (path.equals("/getUsersList.do")) {
+			
+		} else if (path.equals("/getUsersList.do")) {
 			// Users 테이블 값 select.
 			System.out.println("request getUsersList.do");
 			UsersDTO dto = new UsersDTO();
@@ -157,7 +198,41 @@ public class MyController extends HttpServlet {
 			// client view 이동
 			response.sendRedirect("getUsersList.jsp");
 			
+		} else if (path.equals("/getUser.do")) {
+			System.out.println("request getUser");
+			String id = request.getParameter("id");
 			
+			UsersDTO dto = new UsersDTO();
+			dto.setId(id);
+			
+			UsersDAO dao = new UsersDAO();
+			dto = dao.getUser(dto);
+			
+			HttpSession session = request.getSession();
+			session.setAttribute("getUser", dto);
+			
+			response.sendRedirect("getUser.jsp");
+			
+
+		} else if (path.equals("/updateUser.do")) {
+			System.out.println("updating...");
+			
+			UsersDTO dto = new UsersDTO();
+			String id = request.getParameter("id");
+			String pw = request.getParameter("pw");
+			String name = request.getParameter("name");
+			String role = request.getParameter("role");
+			
+			dto.setId(id);
+			dto.setPw(pw);
+			dto.setName(name);
+			dto.setRole(role);
+			
+			System.out.println("업데이트 유저 메소드 값 : " + dto);
+			UsersDAO dao = new UsersDAO();
+			dao.updateUser(dto);
+			
+			response.sendRedirect("getUsersList.do");		
 		}
 		
 		

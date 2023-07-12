@@ -24,7 +24,7 @@
 	<div class="userTable">
 		<h3> 회원 정보 </h3>
 		<table border="1px" cellpadding="0" cellspacing="0" width="400px">
-			<tr>
+			<tr bgcolor="orange">
 				<th>아이디</th>
 				<th>비밀번호</th>
 				<th>이름</th>
@@ -33,7 +33,7 @@
 			
 			<% for (UsersDTO dto : usersList) {%>
 			<tr>
-				<td> <%= dto.getId() %> </td>
+				<td><a href="getUser.do?id=<%= dto.getId() %>"><%= dto.getId() %></a></td>
 				<td> <%= dto.getPw() %> </td>
 				<td> <%= dto.getName() %> </td>
 				<td> <%= dto.getRole() %> </td>

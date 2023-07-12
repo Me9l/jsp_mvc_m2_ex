@@ -16,6 +16,8 @@ public class UsersDAO {
 	
 	private final String USERS_INSERT = "INSERT INTO users (id,pw,name,role) VALUES(?,?,?,?)";
 	private final String GET_ALL_USERS = "SELECT * FROM users ORDER BY id ASC";
+	private final String GET_USER = "SELECT * FROM users WHERE id=?";
+	private final String UPDATE_USER = "UPDATE users SET pw=?,role=? WHERE id=?";
 	// 1. method for INSERT VALUES INTO users table
 	public void insertUsers(UsersDTO dto) {
 		System.out.println("try insert Users...");
@@ -64,5 +66,48 @@ public class UsersDAO {
 		}
 		
 		return usersList;
+	}
+	
+	public UsersDTO getUser(UsersDTO dto) {
+		System.out.println("getUser request");
+		UsersDTO user = new UsersDTO();
+		try {
+			conn = JDBCutil.getConnection();
+			pstmt = conn.prepareStatement(GET_USER);
+			pstmt.setString(1, dto.getId());
+			rs = pstmt.executeQuery();
+			
+			while ( rs.next() ) {
+				user.setId(rs.getString("ID"));
+				user.setPw(rs.getString("PW"));
+				user.setName(rs.getString("NAME"));
+				user.setRole(rs.getString("ROLE"));
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			JDBCutil.close(rs, pstmt, conn);
+		}
+		return user;
+	}
+	
+//		UPDATE_USER = "UPDATE users SET pw=?,role=? WHERE id=?";
+	public void updateUser(UsersDTO dto) {
+		System.out.println("updateUser processing..");
+		try {
+			conn = JDBCutil.getConnection();
+			pstmt = conn.prepareStatement(UPDATE_USER);
+			pstmt.setString(1, dto.getPw());
+			pstmt.setString(2, dto.getRole());
+			pstmt.setString(3, dto.getId());
+			
+			pstmt.executeUpdate();
+			
+			System.out.println("User Update Complete");
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			JDBCutil.close(pstmt, conn);
+		}
 	}
 }

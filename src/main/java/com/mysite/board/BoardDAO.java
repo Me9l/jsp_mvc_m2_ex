@@ -24,11 +24,11 @@ public class BoardDAO {
 	
 	private final String BOARD_INSERT =
 			"INSERT INTO board (seq,title,writer,content) VALUES ((SELECT nvl(max(seq),0)+1 FROM board),?,?,?)";
-	private final String BOARD_UPDATE = "";
+	private final String BOARD_UPDATE = "UPDATE board SET title=?, content=? WHERE seq=?";
 	private final String BOARD_DELETE = "";
-	private final String BOARD_GET = "";
+	private final String BOARD_GET = "SELECT * FROM board WHERE seq=?";
+	private final String ADD_COUNT = "UPDATE board SET cnt=(cnt+1) WHERE seq=?";
 	private final String BOARD_LIST = "SELECT * FROM board ORDER BY seq DESC";
-	
 	
 	// 1. board 테이블에 값 넣기 : Insert
 	//BOARD_INSERT = "INSERT INTO board (seq,title,writer,content) VALUES ((SELECT nvl(max(seq),0)+1 FROM board),?,?,?)";
@@ -54,8 +54,78 @@ public class BoardDAO {
 	}
 	
 	// 2. board 테이블 값 수정 : UPDATE
+	// BOARD_UPDATE = "UPDATE board SET title=?, content=? WHERE seq=?";
+	public void updateBoard(BoardDTO dto) {
+		System.out.println("게시글 내용 수정 진행중..");
+		
+		try {
+			conn = JDBCutil.getConnection();
+			pstmt = conn.prepareStatement(BOARD_UPDATE);
+			pstmt.setString(1, dto.getTitle());
+			pstmt.setString(2, dto.getContent());
+			pstmt.setInt(3, dto.getSeq());
+			
+			pstmt.executeUpdate();
+			
+			System.out.println("update complete.");
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			JDBCutil.close(pstmt, conn);
+		}
+	}
+
 	// 3. board 테이블 값 삭제 : DELETE
-	// 4. 조회 : 상세 페이지 ( GET ) : SELECT
+	
+	// 4. 조회 : 상세 페이지 ( GET ) : SELECT ( dto에 담아서 return )
+	// BOARD_GET = "SELECT * FROM board WHERE seq=?"
+	public BoardDTO getBoard(BoardDTO dto) {
+		// 조회수 증가.
+		addCnt(dto);
+		BoardDTO board = new BoardDTO();
+		try {
+			System.out.println("Try to connect Database.");
+			conn = JDBCutil.getConnection();
+			pstmt = conn.prepareStatement(BOARD_GET);
+			pstmt.setInt(1, dto.getSeq());
+			rs = pstmt.executeQuery();
+			
+			while( rs.next() ) {
+				board.setSeq(rs.getInt("SEQ"));
+				board.setTitle(rs.getString("TITLE"));
+				board.setWriter(rs.getString("WRITER"));
+				board.setContent(rs.getString("CONTENT"));
+				board.setRegdate(rs.getDate("REGDATE"));
+				board.setCnt(rs.getInt("CNT"));
+			}
+
+			System.out.println("BOARD_GET : " + board.toString());
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			JDBCutil.close(rs, pstmt, conn);
+		}
+		return board;
+	}
+	
+	public void addCnt(BoardDTO dto) {
+		
+		try {
+			conn = JDBCutil.getConnection();
+			pstmt = conn.prepareStatement(ADD_COUNT);
+			pstmt.setInt(1, dto.getSeq());
+			pstmt.executeUpdate();
+			
+			System.out.println("count + 1");
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			JDBCutil.close(pstmt, conn);			
+		}
+	}
+	
+	
 	// 5. 모두 조회 : 여러개의 레코드 : SELECT	// BOARD_LIST = "SELECT * FROM board ORDER BY seq DESC";
 	public List<BoardDTO> getBoardList(BoardDTO dto){
 		System.out.println("getBoardList method has called.");
@@ -86,5 +156,5 @@ public class BoardDAO {
 			JDBCutil.close(rs, pstmt, conn);
 		}
 		return boardList;		// boardList : board TABLE의 각 레코드를 dto에 담아서 저장.
-	}	
+	}
 }
